@@ -61,11 +61,12 @@ namespace CatchVsTestAdapter
             {
                 var test = new TestCase(match.Groups[1].Value, CatchTestExecutor.ExecutorUri, source);
 
+                // TODO: Put support for tags back using dynamics so it still runs/builds on 2012.
                 // Add test tags as traits.
-                for (var i = 2; i < match.Groups.Count; ++i)
-                {
-                    test.Traits.Add("Tags", match.Groups[i].Value);
-                }
+                //for (var i = 2; i < match.Groups.Count; ++i)
+                //{
+                //    test.Traits.Add("Tags", match.Groups[i].Value);
+                //}
 
                 tests.Add(test);
             }
