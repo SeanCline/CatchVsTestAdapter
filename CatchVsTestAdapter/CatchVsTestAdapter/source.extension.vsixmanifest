@@ -4,6 +4,7 @@
     <Identity Id="10624fa1-7f92-4b37-be11-9f19496dd085" Version="0.1" Language="en-US" Publisher="Sean D. Cline" />
     <DisplayName>Catch integration for Visual Studio</DisplayName>
     <Description xml:space="preserve">Visual Studio test adaptor for tests using the Catch unit test framework</Description>
+    <MoreInfo>https://github.com/SeanCline/CatchVsTestAdapter</MoreInfo>
     <Icon>catch.ico</Icon>
     <PreviewImage>screenshot.png</PreviewImage>
     <Tags>Unit Test Adapter, Unit Test Adaptor, Catch</Tags>
@@ -19,5 +20,6 @@
   <Assets>
     <Asset Type="UnitTestExtension" d:ProjectName="CatchVsTestAdapter" Path="|CatchVsTestAdapter|" d:Source="Project" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="CatchVsTestAdapter" Path="|CatchVsTestAdapter|" />
+    <Asset Type="Microsoft.VisualStudio.ProjectTemplate" d:Source="File" Path="ProjectTemplates" d:TargetPath="ProjectTemplates\CatchVsProjectTemplate.zip" />
   </Assets>
 </PackageManifest>
