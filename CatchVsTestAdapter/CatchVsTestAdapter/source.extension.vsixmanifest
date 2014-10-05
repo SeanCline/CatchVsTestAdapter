@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+  <Metadata>
+    <Identity Id="10624fa1-7f92-4b37-be11-9f19496dd085" Version="0.1" Language="en-US" Publisher="Sean D. Cline" />
+    <DisplayName>Catch integration for Visual Studio</DisplayName>
+    <Description xml:space="preserve">Visual Studio test adaptor for tests using the Catch unit test framework</Description>
+    <Icon>catch.ico</Icon>
+    <PreviewImage>screenshot.png</PreviewImage>
+    <Tags>Unit Test Adapter, Unit Test Adaptor, Catch</Tags>
+  </Metadata>
+  <Installation InstalledByMsi="false" AllUsers="true">
+    <InstallationTarget Version="[11.0,12.0]" Id="Microsoft.VisualStudio.Pro" />
+    <InstallationTarget Version="[11.0,12.0]" Id="Microsoft.VisualStudio.Premium" />
+    <InstallationTarget Version="[11.0,12.0]" Id="Microsoft.VisualStudio.Ultimate" />
+  </Installation>
+  <Dependencies>
+    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="4.5" />
+  </Dependencies>
+  <Assets>
+    <Asset Type="UnitTestExtension" d:ProjectName="CatchVsTestAdapter" Path="|CatchVsTestAdapter|" d:Source="Project" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="CatchVsTestAdapter" Path="|CatchVsTestAdapter|" />
+  </Assets>
+</PackageManifest>
