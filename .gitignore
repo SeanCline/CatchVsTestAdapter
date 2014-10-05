@@ -4,9 +4,6 @@
 # Signing keys
 *.snk
 
-# The zipped project template.
-CatchVsProjectTemplate.zip
-
 # User-specific files
 *.suo
 *.user
