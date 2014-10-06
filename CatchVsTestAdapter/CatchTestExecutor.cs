@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
@@ -53,8 +55,7 @@ namespace CatchVsTestAdapter
                 }
 
                 // Run the tests...
-                var testResult = RunTest(test);
-                frameworkHandle.RecordResult(testResult);
+                RunTest(test, runContext, frameworkHandle);
             }
         }
 
@@ -64,15 +65,35 @@ namespace CatchVsTestAdapter
         /// <param name="test">The test case to run.</param>
         /// <param name="context">The context under which to run the test.</param>
         /// <returns></returns>
-        internal static TestResult RunTest(TestCase test, IRunContext context = null)
+        internal static void RunTest(TestCase test, IRunContext context, IFrameworkHandle framework)
         {
             var result = new TestResult(test);
 
-            var breakArg = (context != null && context.IsBeingDebugged) ? "--break" : "";
-            var output = Utility.runExe(test.Source, test.FullyQualifiedName, "-r", "xml", breakArg);
+            framework.RecordStart(test);
+
+            var output = "";
+            if (context != null && context.IsBeingDebugged)
+            {
+                var cwd = Directory.GetCurrentDirectory();
+                var exePath = Path.Combine(cwd, test.Source);
+                var outputPath = Path.GetTempFileName();
+                var arguments = Utility.escapeArguments(test.FullyQualifiedName, "--reporter", "xml", "--break", "--out", outputPath);
+                var debuggee = Process.GetProcessById(framework.LaunchProcessWithDebuggerAttached(exePath, cwd, arguments, null));
+                debuggee.WaitForExit();
+                output = File.ReadAllText(outputPath);
+                File.Delete(outputPath);
+            }
+            else
+            {
+                output = Utility.runExe(test.Source, test.FullyQualifiedName, "--reporter", "xml");
+            }
 
             var testCaseElement = getTestCaseElement(XDocument.Parse(output), test.FullyQualifiedName);
+
             result.Outcome = getTestOutcome(testCaseElement);
+
+            framework.RecordEnd(test, result.Outcome);
+
             if (result.Outcome == TestOutcome.Failed)
             {
                 result.ErrorMessage = getErrorMessage(testCaseElement);
@@ -90,8 +111,8 @@ namespace CatchVsTestAdapter
                     Console.WriteLine("Couldn't figure out file and line number of failure. Error: " + ex.Message);
                 }
             }
-            
-            return result;
+
+            framework.RecordResult(result);
         }
 
         internal static XElement getTestCaseElement(XDocument testOutputDoc, string testName)
@@ -108,7 +129,7 @@ namespace CatchVsTestAdapter
         {
             var overallResult = testCaseElememt.Descendants("OverallResult").ToList<XElement>();
 
-            if (overallResult.Count() < 1)
+            if (!overallResult.Any())
             {
                 return TestOutcome.None;
             }
@@ -126,15 +147,15 @@ namespace CatchVsTestAdapter
 
         internal static Tuple<string, int> getFailureLocation(XElement testCaseElememt)
         {
-            var locations = from el in testCaseElememt.Descendants("Expression")
+            var locations = (from el in testCaseElememt.Descendants("Expression")
                             where el.Attribute("success").Value == "false"
                             select new
                             {
                                 file = el.Attribute("filename").Value,
                                 line = int.Parse(el.Attribute("line").Value)
-                            };
+                            }).ToList();
 
-            if (locations.Count() < 1)
+            if (!locations.Any())
             {
                 throw new Exception("Could not find expression descendent when looking for filename.");
             }
