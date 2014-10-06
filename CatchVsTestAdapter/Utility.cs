@@ -8,16 +8,13 @@ namespace CatchVsTestAdapter
     {
         public static string runExe(string exe, params string[] args)
         {
-            Process p = new Process();
-            p.StartInfo = new ProcessStartInfo();
+            var p = new Process{};
+            p.StartInfo = new ProcessStartInfo{};
             p.StartInfo.CreateNoWindow = true;
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.RedirectStandardOutput = true;
             p.StartInfo.FileName = exe;
-            foreach (var arg in args)
-            {
-                p.StartInfo.Arguments += escapeArgument(arg) + " ";
-            }
+            p.StartInfo.Arguments = escapeArguments(args);
 
             p.Start();
             var stdout = p.StandardOutput.ReadToEnd();
@@ -25,9 +22,27 @@ namespace CatchVsTestAdapter
             return stdout;
         }
 
+        public static String escapeArguments(params string[] args)
+        {
+            var argumentString = "";
+            foreach (var arg in args)
+            {
+                argumentString += escapeArgument(arg) + " ";
+            }
+
+            // Trim the trailing space from above.
+            if (argumentString.Length > 0)
+            {
+                argumentString = argumentString.Remove(argumentString.Length - 1);
+            }
+
+            return argumentString;
+        }
+
         internal static string escapeArgument(string arg)
         {
-            return "\"" + Regex.Replace(arg, @"(\\+)$", @"$1$1") + "\"";
+            var escapedQuotes = arg.Replace("\"", "\\\"");
+            return "\"" + Regex.Replace(escapedQuotes, @"(\\+)$", @"$1$1") + "\"";
         }
     }
 }
