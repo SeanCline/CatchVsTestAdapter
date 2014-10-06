@@ -96,20 +96,12 @@ namespace CatchVsTestAdapter
 
             if (result.Outcome == TestOutcome.Failed)
             {
-                result.ErrorMessage = getErrorMessage(testCaseElement);
+                var expressionNode = (from el in testCaseElement.Descendants("Expression")
+                                      where el.Attribute("success").Value == "false"
+                                      select el).First();
 
-                try
-                {
-                    // TODO: Modify catch so this information is available to us before a failure.
-                    var location = getFailureLocation(testCaseElement);
-                    result.TestCase.CodeFilePath = location.Item1;
-                    result.TestCase.LineNumber = location.Item2;
-                }
-                catch (Exception ex)
-                {
-                    // Log it and move on. Don't let a lack of file/line hold up reporting test in status.
-                    Console.WriteLine("Couldn't figure out file and line number of failure. Error: " + ex.Message);
-                }
+                var expr = new FailureExpression(expressionNode);
+                result.ErrorMessage = expr.ToString();
             }
 
             framework.RecordResult(result);
@@ -143,30 +135,6 @@ namespace CatchVsTestAdapter
             {
                 return TestOutcome.Failed;
             }
-        }
-
-        internal static Tuple<string, int> getFailureLocation(XElement testCaseElememt)
-        {
-            var locations = (from el in testCaseElememt.Descendants("Expression")
-                            where el.Attribute("success").Value == "false"
-                            select new
-                            {
-                                file = el.Attribute("filename").Value,
-                                line = int.Parse(el.Attribute("line").Value)
-                            }).ToList();
-
-            if (!locations.Any())
-            {
-                throw new Exception("Could not find expression descendent when looking for filename.");
-            }
-
-            var location = locations.First();
-            return new Tuple<string, int>(location.file, location.line);
-        }
-
-        internal static string getErrorMessage(XElement testCaseElememt)
-        {
-            return ""; // TODO TODO TODO TODO
         }
 
         #endregion
