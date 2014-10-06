@@ -91,6 +91,10 @@
     <Compile Include="Utility.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="LICENSE_1_0.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="ProjectTemplates\CatchVsProjectTemplate\CatchTemplate.vcxproj">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>

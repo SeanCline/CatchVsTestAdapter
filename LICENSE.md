@@ -1,0 +1,1 @@
+See license file [here.](https://raw.github.com/SeanCline/CatchVsTestAdapter/master/CatchVsTestAdapter/LICENSE_1_0.txt)

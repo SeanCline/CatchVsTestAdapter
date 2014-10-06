@@ -5,6 +5,7 @@
     <DisplayName>Catch integration for Visual Studio</DisplayName>
     <Description xml:space="preserve">Visual Studio test adaptor for tests using the Catch unit test framework</Description>
     <MoreInfo>https://github.com/SeanCline/CatchVsTestAdapter</MoreInfo>
+    <License>LICENSE_1_0.txt</License>
     <Icon>catch.ico</Icon>
     <PreviewImage>screenshot.png</PreviewImage>
     <Tags>Unit Test Adapter, Unit Test Adaptor, Catch</Tags>
