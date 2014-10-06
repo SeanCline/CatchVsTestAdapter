@@ -3,11 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatchVsTestAdapter", "CatchVsTestAdapter\CatchVsTestAdapter.csproj", "{FA8BBFA4-A1E1-462B-AD8F-55502555F587}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestProject", "TestProject\TestProject.vcxproj", "{5D574261-42EC-45F1-91B8-5BB81A134DDA}"
-	ProjectSection(ProjectDependencies) = postProject
-		{FA8BBFA4-A1E1-462B-AD8F-55502555F587} = {FA8BBFA4-A1E1-462B-AD8F-55502555F587}
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
