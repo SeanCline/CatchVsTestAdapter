@@ -3,7 +3,7 @@
   <Metadata>
     <Identity Id="10624fa1-7f92-4b37-be11-9f19496dd085" Version="0.1" Language="en-US" Publisher="Sean D. Cline" />
     <DisplayName>Catch integration for Visual Studio</DisplayName>
-    <Description xml:space="preserve">Visual Studio test adaptor for tests using the Catch unit test framework</Description>
+    <Description xml:space="preserve">Visual Studio test adaptor for tests written using the Catch unit test framework</Description>
     <MoreInfo>https://github.com/SeanCline/CatchVsTestAdapter</MoreInfo>
     <License>LICENSE_1_0.txt</License>
     <Icon>catch.ico</Icon>
