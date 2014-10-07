@@ -6,12 +6,19 @@ using System.Linq;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 
 namespace CatchVsTestAdapter
 {
     [ExtensionUri(CatchTestExecutor.ExecutorUriString)]
     public class CatchTestExecutor : ITestExecutor
     {
+        public const string ExecutorUriString = "executor://CatchTestExecutor";
+        public static readonly Uri ExecutorUri = new Uri(CatchTestExecutor.ExecutorUriString);
+
+        private enum ExecutorState { Stopped, Running, Cancelling, Cancelled }
+        private ExecutorState _state = ExecutorState.Stopped;
+
         #region ITestExecutor
 
         /// <summary>
@@ -19,143 +26,192 @@ namespace CatchVsTestAdapter
         /// </summary>
         public void Cancel()
         {
-            state_ = ExecutorState.Cancelling;
+            _state = ExecutorState.Cancelling;
         }
 
 
         /// <summary>
         /// Runs the tests.
         /// </summary>
-        /// <param name="sources">Where to look for tests to be run.</param>
+        /// <param name="testBinary">Where to look for tests to be run.</param>
         /// <param name="runContext">Context in which to run tests.</param>
-        /// <param param name="frameworkHandle">Where results should be stored.</param>
-        public void RunTests(IEnumerable<string> sources, IRunContext runContext, IFrameworkHandle frameworkHandle)
+        /// <param param name="framework">Where results should be stored.</param>
+        public void RunTests(IEnumerable<string> testBinaries, IRunContext context, IFrameworkHandle framework)
         {
-            var tests = CatchTestDiscoverer.listTestsInBinaries(sources);
-            RunTests(tests, runContext, frameworkHandle);
+            _state = ExecutorState.Running;
+
+            foreach (var testBinary in testBinaries)
+            {
+                if (_state == ExecutorState.Cancelling)
+                {
+                    _state = ExecutorState.Cancelled;
+                    return;
+                }
+
+                var reportDocument = RunOrDebugCatchTest(testBinary, "*", context, framework);
+
+                var tests = CatchTestDiscoverer.listTestsInBinary(testBinary);
+                foreach (var test in tests)
+                {
+                    try
+                    {
+                        var result = GetTestResultFromReport(test, reportDocument);
+                        framework.RecordResult(result);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log it and move on. It will show up to the user as a test that hasn't been run.
+                        framework.SendMessage(TestMessageLevel.Error, "Exception occured when processing test source: " + test.FullyQualifiedName);
+                        framework.SendMessage(TestMessageLevel.Informational, "Message: " + ex.Message + "\nStacktrace:" + ex.StackTrace);
+                    }
+                }
+            }
         }
-        
-        
+
+
         /// <summary>
         /// Runs the tests.
         /// </summary>
         /// <param name="tests">Which tests should be run.</param>
         /// <param name="runContext">Context in which to run tests.</param>
-        /// <param param name="frameworkHandle">Where results should be stored.</param>
-        public void RunTests(IEnumerable<TestCase> tests, IRunContext runContext, IFrameworkHandle frameworkHandle)
+        /// <param param name="framework">Where results should be stored.</param>
+        public void RunTests(IEnumerable<TestCase> tests, IRunContext runContext, IFrameworkHandle framework)
         {
-            state_ = ExecutorState.Running;
+            _state = ExecutorState.Running;
 
-            foreach (TestCase test in tests)
+            foreach (var test in tests)
             {
-                if (state_ == ExecutorState.Cancelling)
+                if (_state == ExecutorState.Cancelling)
                 {
-                    state_ = ExecutorState.Cancelled;
-                    break;
+                    _state = ExecutorState.Cancelled;
+                    return;
                 }
 
-                // Run the tests...
-                RunTest(test, runContext, frameworkHandle);
+                try
+                {
+                    var reportDocument = RunOrDebugCatchTest(test.Source, test.FullyQualifiedName, runContext, framework);
+                    var result = GetTestResultFromReport(test, reportDocument);
+                    framework.RecordResult(result);
+                }
+                catch (Exception ex)
+                {
+                    // Log it and move on. It will show up to the user as a test that hasn't been run.
+                    framework.SendMessage(TestMessageLevel.Error, "Exception occured when processing test case: " + test.FullyQualifiedName);
+                    framework.SendMessage(TestMessageLevel.Informational, "Message: " + ex.Message + "\nStacktrace:" + ex.StackTrace);
+                }
             }
         }
 
-        /// <summary>
-        /// Runs a single test and returns its result.
-        /// </summary>
-        /// <param name="test">The test case to run.</param>
-        /// <param name="context">The context under which to run the test.</param>
-        /// <returns></returns>
-        internal static void RunTest(TestCase test, IRunContext context, IFrameworkHandle framework)
+        private static XDocument RunOrDebugCatchTest(string testBinary, string testSpec, IRunContext runContext, IFrameworkHandle framework)
         {
-            var result = new TestResult(test);
-
-            framework.RecordStart(test);
-
-            var output = "";
-            if (context != null && context.IsBeingDebugged)
+            if (runContext.IsBeingDebugged)
             {
-                var cwd = Directory.GetCurrentDirectory();
-                var exePath = Path.Combine(cwd, test.Source);
-                var outputPath = Path.GetTempFileName();
-                var arguments = Utility.escapeArguments(test.FullyQualifiedName, "--reporter", "xml", "--break", "--out", outputPath);
-                var debuggee = Process.GetProcessById(framework.LaunchProcessWithDebuggerAttached(exePath, cwd, arguments, null));
-                debuggee.WaitForExit();
-                output = File.ReadAllText(outputPath);
-                File.Delete(outputPath);
+                return XDocument.Parse(DebugCatchTest(testBinary, testSpec, framework));
             }
             else
             {
-                output = Utility.runExe(test.Source, test.FullyQualifiedName, "--reporter", "xml");
+                return XDocument.Parse(RunCatchTests(testBinary, testSpec));
+            }
+        }
+
+        #endregion
+
+        #region Implementation Details
+
+        /// <summary>
+        /// Runs a test in a source (Catch binary) and returns the resulting XML string.
+        /// If a testspec is not provided, runs the default set of tests.
+        /// </summary>
+        internal static string RunCatchTests(string testBinary, string testSpec)
+        {
+            return Utility.runExe(testBinary, testSpec, "--reporter", "xml");
+        }
+
+
+        /// <summary>
+        /// Runs a test in a source (Catch binary) with a debugger attached and returns the resulting XML string.
+        /// </summary>
+        internal static string DebugCatchTest(string testBinary, string testSpec, IFrameworkHandle framework)
+        {
+            string output;
+
+            var cwd = Directory.GetCurrentDirectory();
+            var exePath = Path.Combine(cwd, testBinary);
+            var outputPath = Path.GetTempFileName();
+            try
+            {
+                var arguments = Utility.escapeArguments(testSpec, "--reporter", "xml", "--break", "--out", outputPath);
+                var debuggee = Process.GetProcessById(framework.LaunchProcessWithDebuggerAttached(exePath, cwd, arguments, null));
+                debuggee.WaitForExit();
+                output = File.ReadAllText(outputPath);
+                debuggee.Close();
+            }
+            finally
+            {
+                File.Delete(outputPath);
             }
 
-            var testCaseElement = getTestCaseElement(XDocument.Parse(output), test.FullyQualifiedName);
+            return output;
+        }
 
-            result.Outcome = getTestOutcome(testCaseElement);
 
-            framework.RecordEnd(test, result.Outcome);
+        /// <summary>
+        /// Returns a TestResult for a given test case, populated with the data from the report document.
+        /// </summary>
+        internal static TestResult GetTestResultFromReport(TestCase test, XDocument report)
+        {
+            var result = new TestResult(test);
+
+            var testCaseElement = GetTestCaseElement(report, test.FullyQualifiedName);
+            result.Outcome = GetTestOutcome(testCaseElement);
 
             if (result.Outcome == TestOutcome.Failed)
             {
                 var expressionNode = (from el in testCaseElement.Descendants("Expression")
                                       where el.Attribute("success").Value == "false"
-                                      select el).First();
+                                      select el).FirstOrDefault();
 
-                var expr = new FailureExpression(expressionNode);
-                result.ErrorMessage = expr.ToString();
+
+                if (expressionNode != null)
+                {
+                    var expr = new FailureExpression(expressionNode);
+                    result.ErrorMessage = expr.ToString();
+                }
+                else
+                {
+                    result.ErrorMessage = "Unknown error.";
+                }
             }
 
-            framework.RecordResult(result);
+            return result;
         }
 
-        internal static XElement getTestCaseElement(XDocument testOutputDoc, string testName)
+
+        /// <summary>
+        /// Returns the &lt;TestCase&gt; element with the fiven name in a report document.
+        /// Throws if that test case does not exist in the document.
+        /// </summary>
+        internal static XElement GetTestCaseElement(XDocument reportDocument, string testName)
         {
             var testCaseElememt =
-                from el in testOutputDoc.Descendants("TestCase")
+                from el in reportDocument.Descendants("TestCase")
                 where el.Attribute("name").Value == testName
                 select el;
 
             return testCaseElememt.First<XElement>();
         }
 
-        internal static TestOutcome getTestOutcome(XElement testCaseElememt)
+
+        /// <summary>
+        /// Returns the outcome of a given test based on its xml element.
+        /// </summary>
+        internal static TestOutcome GetTestOutcome(XElement testCaseElememt)
         {
-            var overallResult = testCaseElememt.Descendants("OverallResult").ToList<XElement>();
+            var status = testCaseElememt.Descendants("OverallResult").First().Attribute("success").Value;
 
-            if (!overallResult.Any())
-            {
-                return TestOutcome.None;
-            }
-
-            var status = overallResult.First().Attribute("success").Value;
-            if (status.Equals("true", StringComparison.InvariantCultureIgnoreCase))
-            {
-                return TestOutcome.Passed;
-            }
-            else
-            {
-                return TestOutcome.Failed;
-            }
+            return (status.ToLower() == "true") ? TestOutcome.Passed : TestOutcome.Failed;
         }
 
         #endregion
-
-        /// <summary>
-        /// URI string of this executor.
-        /// </summary>
-        public const string ExecutorUriString = "executor://CatchTestExecutor";
-
-
-        /// <summary>
-        /// URI of this executor.
-        /// </summary>
-        public static readonly Uri ExecutorUri = new Uri(CatchTestExecutor.ExecutorUriString);
-
-
-        /// <summary>
-        /// The state of this executor.
-        /// </summary>
-        private enum ExecutorState { Stopped, Running, Cancelling, Cancelled }
-        private ExecutorState state_ = ExecutorState.Stopped;
-
     }
 }
