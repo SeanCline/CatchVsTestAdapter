@@ -19,9 +19,9 @@ namespace CatchVsTestAdapter
         /// <param name="sources">Binaries to search for tests.</param>
         public void DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, IMessageLogger logger, ITestCaseDiscoverySink discoverySink)
         {
-            var catchSources = sources.Where(x => isSourceACatchTest(x));
+            var catchBinaries = sources.Where(x => isSourceACatchTestBinary(x));
 
-            var tests = listTestsInBinaries(catchSources);
+            var tests = listTestsInBinaries(catchBinaries);
 
             foreach (var testCase in tests)
             {
@@ -29,7 +29,7 @@ namespace CatchVsTestAdapter
             }
         }
 
-        internal static bool isSourceACatchTest(string source)
+        internal static bool isSourceACatchTestBinary(string source)
         {
             // This is a dirty hack to detect whether a binary is a catch test.
             // We really need to know since to detect tests, the binary needs to be run.
@@ -61,12 +61,14 @@ namespace CatchVsTestAdapter
             {
                 var test = new TestCase(match.Groups[1].Value, CatchTestExecutor.ExecutorUri, source);
 
-                // TODO: Put support for tags back using dynamics so it still runs/builds on 2012.
                 // Add test tags as traits.
-                //for (var i = 2; i < match.Groups.Count; ++i)
-                //{
-                //    test.Traits.Add("Tags", match.Groups[i].Value);
-                //}
+                if (test.GetType().GetProperty("Traits") != null) //< Don't populate traits om older versions of VS.
+                {
+                    for (var i = 2; i < match.Groups.Count; ++i)
+                    {
+                        test.Traits.Add("Tags", match.Groups[i].Value);
+                    }
+                }
 
                 tests.Add(test);
             }
