@@ -96,14 +96,26 @@
     <Content Include="CatchVsTestAdapter.pkgdef">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="ItemTemplates\Test\CatchVsItemTemplate\catch.ico">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ItemTemplates\Test\CatchVsItemTemplate\CatchVsItemTemplate.vstemplate">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ItemTemplates\Test\CatchVsItemTemplate\Test.cpp">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="LICENSE_1_0.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="ProjectTemplates\CatchVsProjectTemplate\CatchTemplate.vcxproj">
+    <Content Include="ProjectTemplates\Test\CatchVsProjectTemplate\catch.ico">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="ProjectTemplates\CatchVsProjectTemplate\CatchTemplate.vcxproj.filters">
+    <Content Include="ProjectTemplates\Test\CatchVsProjectTemplate\CatchTemplate.vcxproj">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ProjectTemplates\Test\CatchVsProjectTemplate\CatchTemplate.vcxproj.filters">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <None Include="source.extension.vsixmanifest">
@@ -115,22 +127,19 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="ProjectTemplates\CatchVsProjectTemplate\catch.hpp">
+    <Content Include="ProjectTemplates\Test\CatchVsProjectTemplate\catch.hpp">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="ProjectTemplates\CatchVsProjectTemplate\CatchTemplate.vstemplate">
+    <Content Include="ProjectTemplates\Test\CatchVsProjectTemplate\CatchTemplate.vstemplate">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="ProjectTemplates\CatchVsProjectTemplate\main.cpp">
+    <Content Include="ProjectTemplates\Test\CatchVsProjectTemplate\main.cpp">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="ProjectTemplates\CatchVsProjectTemplate\pch.cpp">
+    <Content Include="ProjectTemplates\Test\CatchVsProjectTemplate\pch.cpp">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="ProjectTemplates\CatchVsProjectTemplate\pch.h">
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="ProjectTemplates\CatchVsProjectTemplate\__TemplateIcon.png">
+    <Content Include="ProjectTemplates\Test\CatchVsProjectTemplate\pch.h">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="screenshot.png">

@@ -1,0 +1,13 @@
+<VSTemplate Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Item">
+    <TemplateData>
+        <Name>Catch Unit Test File</Name>
+        <Description>And empty file for Catch unit tests.</Description>
+        <Icon>catch.ico</Icon>
+        <ProjectType>VC</ProjectType>
+        <ProjectSubType></ProjectSubType>
+        <DefaultName>Test.cpp</DefaultName>
+    </TemplateData>
+    <TemplateContent>
+        <ProjectItem ReplaceParameters="true">Test.cpp</ProjectItem>
+    </TemplateContent>
+</VSTemplate>

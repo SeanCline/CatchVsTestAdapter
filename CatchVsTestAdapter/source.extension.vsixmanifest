@@ -21,6 +21,7 @@
   <Assets>
     <Asset Type="UnitTestExtension" d:ProjectName="CatchVsTestAdapter" Path="|CatchVsTestAdapter|" d:Source="Project" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="CatchVsTestAdapter" Path="|CatchVsTestAdapter|" />
-    <Asset Type="Microsoft.VisualStudio.ProjectTemplate" d:Source="File" Path="ProjectTemplates" d:VsixSubPath="ProjectTemplates\CatchVsProjectTemplate" d:TargetPath="ProjectTemplates\CatchVsProjectTemplate\CatchVsProjectTemplate.vstemplate" />
+    <Asset Type="Microsoft.VisualStudio.ProjectTemplate" d:Source="File" Path="ProjectTemplates" d:VsixSubPath="ProjectTemplates\Test\CatchVsProjectTemplate" d:TargetPath="ProjectTemplates\CatchVsProjectTemplate\CatchVsProjectTemplate.vstemplate" />
+	<Asset Type="Microsoft.VisualStudio.ItemTemplate" d:Source="File" Path="ItemTemplates" d:VsixSubPath="ItemTemplates\Test\CatchVsItemTemplate" d:TargetPath="ItemTemplates\CatchVsItemTemplate\CatchVsItemTemplate.vstemplate" />
   </Assets>
 </PackageManifest>
