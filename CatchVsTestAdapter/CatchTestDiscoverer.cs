@@ -56,17 +56,19 @@ namespace CatchVsTestAdapter
             var listOutput = Utility.runExe(source, "--list-tests");
 
             // Match a test case out of the output.
-            var matches = Regex.Matches(listOutput, @"\r?\n[ ]{2}([^\r\n]*)(?:\r?\n[ ]{6}(\s*\[[^\r\n]*\])*)?");
-            foreach (Match match in matches)
+            const string regexStr = @"\r?\n[ ]{2}(?<name>[^\r\n]*)(?:\r?\n[ ]{4}(?<name>[^ ][^\r\n]*))*(?:\r?\n[ ]{6}(?<tag>\s*\[[^\r\n]*\])*)?";
+
+            foreach (Match match in Regex.Matches(listOutput, regexStr))
             {
-                var test = new TestCase(match.Groups[1].Value, CatchTestExecutor.ExecutorUri, source);
+                var testName = match.Groups["name"].Captures.OfType<Capture>().Select(x => x.Value).Aggregate((x, y) => x + " " + y);
+                var test = new TestCase(testName, CatchTestExecutor.ExecutorUri, source);
 
                 // Add test tags as traits.
                 if (test.GetType().GetProperty("Traits") != null) //< Don't populate traits om older versions of VS.
                 {
-                    for (var i = 2; i < match.Groups.Count; ++i)
+                    foreach (Capture tag in match.Groups["tag"].Captures)
                     {
-                        test.Traits.Add("Tags", match.Groups[i].Value);
+                        test.Traits.Add("Tags", tag.Value);
                     }
                 }
 
