@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
@@ -33,8 +34,8 @@ namespace CatchVsTestAdapter
         /// <summary>
         /// Runs the tests.
         /// </summary>
-        /// <param name="testBinary">Where to look for tests to be run.</param>
-        /// <param name="runContext">Context in which to run tests.</param>
+        /// <param name="testBinaries">Where to look for tests to be run.</param>
+        /// <param name="context">Context in which to run tests.</param>
         /// <param param name="framework">Where results should be stored.</param>
         public void RunTests(IEnumerable<string> testBinaries, IRunContext context, IFrameworkHandle framework)
         {
@@ -50,7 +51,7 @@ namespace CatchVsTestAdapter
 
                 var reportDocument = RunOrDebugCatchTest(testBinary, "*", context, framework);
 
-                var tests = CatchTestDiscoverer.listTestsInBinary(testBinary);
+                var tests = CatchTestDiscoverer.ListTestsInBinary(testBinary);
                 foreach (var test in tests)
                 {
                     try
@@ -73,9 +74,9 @@ namespace CatchVsTestAdapter
         /// Runs the tests.
         /// </summary>
         /// <param name="tests">Which tests should be run.</param>
-        /// <param name="runContext">Context in which to run tests.</param>
+        /// <param name="context">Context in which to run tests.</param>
         /// <param param name="framework">Where results should be stored.</param>
-        public void RunTests(IEnumerable<TestCase> tests, IRunContext runContext, IFrameworkHandle framework)
+        public void RunTests(IEnumerable<TestCase> tests, IRunContext context, IFrameworkHandle framework)
         {
             _state = ExecutorState.Running;
 
@@ -89,7 +90,7 @@ namespace CatchVsTestAdapter
 
                 try
                 {
-                    var reportDocument = RunOrDebugCatchTest(test.Source, test.FullyQualifiedName, runContext, framework);
+                    var reportDocument = RunOrDebugCatchTest(test.Source, test.FullyQualifiedName, context, framework);
                     var result = GetTestResultFromReport(test, reportDocument);
                     framework.RecordResult(result);
                 }
@@ -193,9 +194,23 @@ namespace CatchVsTestAdapter
         /// </summary>
         internal static XElement GetTestCaseElement(XDocument reportDocument, string testName)
         {
+            Func<string, string, bool> isMatch = (value, wildcard) =>
+            {
+                bool isWildcard = testName.EndsWith("*");
+
+                if (isWildcard)
+                {
+                    return Regex.IsMatch(value, "^" + Regex.Escape(wildcard.TrimEnd('*')) + ".*$");
+                }
+                else
+                {
+                    return value == wildcard;
+                }
+            };
+
             var testCaseElememt =
                 from el in reportDocument.Descendants("TestCase")
-                where el.Attribute("name").Value == testName
+                where isMatch(el.Attribute("name").Value, testName)
                 select el;
 
             return testCaseElememt.First<XElement>();
