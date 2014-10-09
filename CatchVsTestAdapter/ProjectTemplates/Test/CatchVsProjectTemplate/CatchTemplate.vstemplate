@@ -17,8 +17,16 @@
       <ProjectItem ReplaceParameters="false" TargetFileName="$projectname$.vcxproj.filters">CatchTemplate.vcxproj.filters</ProjectItem>
       <ProjectItem ReplaceParameters="false" TargetFileName="main.cpp">main.cpp</ProjectItem>
       <ProjectItem ReplaceParameters="false" TargetFileName="pch.cpp">pch.cpp</ProjectItem>
-      <ProjectItem ReplaceParameters="false" TargetFileName="catch.hpp">catch.hpp</ProjectItem>
       <ProjectItem ReplaceParameters="false" TargetFileName="pch.h">pch.h</ProjectItem>
     </Project>
   </TemplateContent>
+	<WizardExtension>
+		<Assembly>NuGet.VisualStudio.Interop, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</Assembly>
+		<FullClassName>NuGet.VisualStudio.TemplateWizard</FullClassName>
+	</WizardExtension>
+	<WizardData>
+		<packages>
+			<package id="catchunittest" version="1.0.53.1" />
+		</packages>
+	</WizardData>
 </VSTemplate>

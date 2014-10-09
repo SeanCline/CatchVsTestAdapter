@@ -130,9 +130,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="ProjectTemplates\Test\CatchVsProjectTemplate\catch.hpp">
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
     <Content Include="ProjectTemplates\Test\CatchVsProjectTemplate\CatchTemplate.vstemplate">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
