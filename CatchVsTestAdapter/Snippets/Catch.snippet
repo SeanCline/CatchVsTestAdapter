@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+    <CodeSnippet Format="1.0.0">
+        <Header>
+            <Title>Catch Test Case</Title>
+			<Author>Sean D. Cline</Author>
+			<Shortcut>CatchTestCase</Shortcut>
+        </Header>
+        <Snippet>
+			<Declarations>
+				<Literal Editable="true">
+					<ID>Description</ID>
+					<ToolTip>A description for the test case.</ToolTip>
+				</Literal>
+				<Literal Editable="true">
+					<ID>Body</ID>
+					<ToolTip>The body of the test case.</ToolTip>
+				</Literal>
+			</Declarations>
+            <Code Language="cpp">TEST_CASE("$Description$") {
+	$Body$
+}</Code>
+        </Snippet>
+    </CodeSnippet>
+    <CodeSnippet Format="1.0.0">
+        <Header>
+            <Title>Catch Section</Title>
+			<Author>Sean D. Cline</Author>
+			<Shortcut>CatchSection</Shortcut>
+        </Header>
+        <Snippet>
+			<Declarations>
+				<Literal Editable="true">
+					<ID>Description</ID>
+					<ToolTip>A description for the section.</ToolTip>
+				</Literal>
+				<Literal Editable="true">
+					<ID>Body</ID>
+					<ToolTip>The body of the section.</ToolTip>
+				</Literal>
+			</Declarations>
+            <Code Language="cpp">	SECTION("$Description$") {
+		$Body$
+	}</Code>
+        </Snippet>
+    </CodeSnippet>
+    <CodeSnippet Format="1.0.0">
+        <Header>
+            <Title>Catch Scenario</Title>
+			<Author>Sean D. Cline</Author>
+			<Shortcut>CatchScenario</Shortcut>
+        </Header>
+        <Snippet>
+			<Declarations>
+				<Literal Editable="true">
+					<ID>ScenarioDescription</ID>
+					<ToolTip>A description for the scenario.</ToolTip>
+				</Literal>
+				<Literal Editable="true">
+					<ID>GivenDescription</ID>
+					<ToolTip>A description for the precondition.</ToolTip>
+				</Literal>
+				<Literal Editable="true">
+					<ID>WhenDescription</ID>
+					<ToolTip>A description for the trigger.</ToolTip>
+				</Literal>
+				<Literal Editable="true">
+					<ID>ScenarioBody</ID>
+					<ToolTip>The body of the scenario.</ToolTip>
+				</Literal>
+				<Literal Editable="true">
+					<ID>GivenBody</ID>
+					<ToolTip>The body of the precondition.</ToolTip>
+				</Literal>
+				<Literal Editable="true">
+					<ID>WhenBody</ID>
+					<ToolTip>The body of the trigger.</ToolTip>
+				</Literal>
+			</Declarations>
+            <Code Language="cpp">SCENARIO("$ScenarioDescription$") {
+	$ScenarioBody$
+	GIVEN("$GivenDescription$") {
+		$GivenBody$
+		WHEN("$WhenDescription$") {
+			$WhenBody$
+		}
+	}
+}</Code>
+        </Snippet>
+    </CodeSnippet>
+</CodeSnippets>
