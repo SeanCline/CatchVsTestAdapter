@@ -168,10 +168,10 @@ namespace CatchVsTestAdapter
 
             if (result.Outcome == TestOutcome.Failed)
             {
+                // Look for a expression that caused the test to fail..
                 var expressionNode = (from el in testCaseElement.Descendants("Expression")
                                       where el.Attribute("success").Value == "false"
                                       select el).FirstOrDefault();
-
 
                 if (expressionNode != null)
                 {
@@ -180,7 +180,16 @@ namespace CatchVsTestAdapter
                 }
                 else
                 {
-                    result.ErrorMessage = "Unknown error.";
+                    // If there wasn't an Expression, look for an Exception that triggered the test failure.
+                    var exceptionNode = (from el in testCaseElement.Descendants("Exception") select el).FirstOrDefault();
+                    if (exceptionNode != null)
+                    {
+                        result.ErrorMessage = "Exception: " + exceptionNode.Value.Trim();
+                    }
+                    else
+                    {
+                        result.ErrorMessage = "Unknown error.";
+                    }
                 }
             }
 
