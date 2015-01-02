@@ -184,7 +184,7 @@ namespace CatchVsTestAdapter
                     var exceptionNode = (from el in testCaseElement.Descendants("Exception") select el).FirstOrDefault();
                     if (exceptionNode != null)
                     {
-                        result.ErrorMessage = "Exception: " + exceptionNode.Value.Trim();
+                        result.ErrorMessage = "FAILED:\ndue to unexpected exception with message:\n\t" + exceptionNode.Value.Trim();
                     }
                     else
                     {
