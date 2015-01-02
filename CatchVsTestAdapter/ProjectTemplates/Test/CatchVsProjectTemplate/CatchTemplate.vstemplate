@@ -25,7 +25,7 @@
 		<FullClassName>NuGet.VisualStudio.TemplateWizard</FullClassName>
 	</WizardExtension>
 	<WizardData>
-		<packages>
+		<packages repository="extension" repositoryId="10624fa1-7f92-4b37-be11-9f19496dd085">
 			<package id="catchunittest" version="1.0.53.1" />
 		</packages>
 	</WizardData>
