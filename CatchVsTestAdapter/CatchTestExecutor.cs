@@ -125,7 +125,7 @@ namespace CatchVsTestAdapter
         /// </summary>
         internal static string RunCatchTests(string testBinary, string testSpec)
         {
-            return Utility.runExe(testBinary, testSpec, "--reporter", "xml");
+            return Utility.runExe(testBinary, testSpec, "-r", "xml", "-d", "yes");
         }
 
 
@@ -141,7 +141,7 @@ namespace CatchVsTestAdapter
             var outputPath = Path.GetTempFileName();
             try
             {
-                var arguments = Utility.escapeArguments(testSpec, "--reporter", "xml", "--break", "--out", outputPath);
+                var arguments = Utility.escapeArguments(testSpec, "-r", "xml", "-b", "-d", "yes", "-o", outputPath);
                 var debuggee = Process.GetProcessById(framework.LaunchProcessWithDebuggerAttached(exePath, cwd, arguments, null));
                 debuggee.WaitForExit();
                 output = File.ReadAllText(outputPath);
@@ -165,6 +165,12 @@ namespace CatchVsTestAdapter
 
             var testCaseElement = GetTestCaseElement(report, test.FullyQualifiedName);
             result.Outcome = GetTestOutcome(testCaseElement);
+
+            try
+            {
+                result.Duration = GetTestDuration(testCaseElement);
+            }
+            catch { } //< Older versions of catch do not include the duration in the xml report.
 
             if (result.Outcome == TestOutcome.Failed)
             {
@@ -229,12 +235,23 @@ namespace CatchVsTestAdapter
         /// <summary>
         /// Returns the outcome of a given test based on its xml element.
         /// </summary>
-        internal static TestOutcome GetTestOutcome(XElement testCaseElememt)
+        internal static TestOutcome GetTestOutcome(XElement testCaseElement)
         {
-            var status = testCaseElememt.Descendants("OverallResult").First().Attribute("success").Value;
+            var status = testCaseElement.Descendants("OverallResult").First().Attribute("success").Value;
 
             return (status.ToLower() == "true") ? TestOutcome.Passed : TestOutcome.Failed;
         }
+
+
+        /// <summary>
+        /// Returns the duration of a given test based on its xml element.
+        /// </summary>
+        internal static TimeSpan GetTestDuration(XElement testCaseElement)
+        {
+            var durationAttr = testCaseElement.Descendants("OverallResult").First().Attribute("durationInSeconds");
+            return TimeSpan.FromSeconds(double.Parse(durationAttr.Value));
+        }
+
 
         #endregion
     }
