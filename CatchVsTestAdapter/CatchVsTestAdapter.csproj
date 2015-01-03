@@ -74,6 +74,7 @@
     <Compile Include="CatchTestExecutor.cs" />
     <Compile Include="FailureExpression.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SourceLocation.cs" />
     <Compile Include="Utility.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -8,6 +8,7 @@ using System.Xml.Linq;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
+using System.Text;
 
 namespace CatchVsTestAdapter
 {
@@ -165,39 +166,13 @@ namespace CatchVsTestAdapter
 
             var testCaseElement = GetTestCaseElement(report, test.FullyQualifiedName);
             result.Outcome = GetTestOutcome(testCaseElement);
+            result.ErrorMessage = GetTestMessage(testCaseElement);
 
             try
             {
                 result.Duration = GetTestDuration(testCaseElement);
             }
             catch { } //< Older versions of catch do not include the duration in the xml report.
-
-            if (result.Outcome == TestOutcome.Failed)
-            {
-                // Look for a expression that caused the test to fail..
-                var expressionNode = (from el in testCaseElement.Descendants("Expression")
-                                      where el.Attribute("success").Value == "false"
-                                      select el).FirstOrDefault();
-
-                if (expressionNode != null)
-                {
-                    var expr = new FailureExpression(expressionNode);
-                    result.ErrorMessage = expr.ToString();
-                }
-                else
-                {
-                    // If there wasn't an Expression, look for an Exception that triggered the test failure.
-                    var exceptionNode = (from el in testCaseElement.Descendants("Exception") select el).FirstOrDefault();
-                    if (exceptionNode != null)
-                    {
-                        result.ErrorMessage = "FAILED:\ndue to unexpected exception with message:\n\t" + exceptionNode.Value.Trim();
-                    }
-                    else
-                    {
-                        result.ErrorMessage = "Unknown error.";
-                    }
-                }
-            }
 
             return result;
         }
@@ -233,13 +208,122 @@ namespace CatchVsTestAdapter
 
 
         /// <summary>
+        /// Returns the errer message of a given test based on its xml element.
+        /// </summary>
+        internal static TestOutcome GetTestOutcome(XElement testElement)
+        {
+            // If there is an OverallResult, use it to determine outcome.
+            var resultElement = testElement.Elements("OverallResult").FirstOrDefault();
+            if (resultElement != null)
+            {
+                var passed = resultElement.Attribute("success").Value.ToLower() == "true";
+                return (passed) ? TestOutcome.Passed : TestOutcome.Failed;
+            }
+
+            // If there is an OverallResults (with an s), use it to determine outcome.
+            var resultsElement = testElement.Elements("OverallResults").FirstOrDefault();
+            if (resultsElement != null)
+            {
+                var numFailures = int.Parse(resultsElement.Attribute("failures").Value);
+                var numExpectedFailures = int.Parse(resultsElement.Attribute("expectedFailures").Value);
+
+                var passed = (numFailures == numExpectedFailures); //< All failures were expected.
+                return (passed) ? TestOutcome.Passed : TestOutcome.Failed;
+            }
+
+            return TestOutcome.NotFound;
+        }
+
+
+        /// <summary>
         /// Returns the outcome of a given test based on its xml element.
         /// </summary>
-        internal static TestOutcome GetTestOutcome(XElement testCaseElement)
+        internal static string GetTestMessage(XElement testElement)
         {
-            var status = testCaseElement.Descendants("OverallResult").First().Attribute("success").Value;
+            var message = new StringBuilder { };
 
-            return (status.ToLower() == "true") ? TestOutcome.Passed : TestOutcome.Failed;
+            // If this is a failed section, print a header.
+            if (testElement.Name == "Section" && GetTestOutcome(testElement) != TestOutcome.Passed)
+            {
+                message.AppendFormat("Section \"{0}\":\n", testElement.Attribute("name").Value);
+            }
+
+            // First, recurse over all section elements.
+            foreach (var sectionNode in testElement.Elements("Section"))
+            {
+                message.AppendLine(GetTestMessage(sectionNode));
+            }
+
+            // Print failed expressions...
+            foreach (var expressionElement in testElement.Elements("Expression"))
+            {
+                if (expressionElement.Attribute("success").Value.Trim().ToLower() == "false")
+                {
+                    var expr = new FailureExpression(expressionElement);
+                    message.AppendLine(expr.ToString());
+                }
+            }
+
+            // Print unexpected exceptions...
+            foreach (var exceptionElement in testElement.Elements("Exception"))
+            {
+                var location = SourceLocation.FromXElement(exceptionElement);
+                message.AppendFormat("Unexpected exception at {0} with message:\n\t{1}\n", location, exceptionElement.Value.Trim());
+                message.AppendLine();
+            }
+
+            // Print info...
+            foreach (var infoElement in testElement.Elements("Info"))
+            {
+                if (infoElement.Value != null)
+                {
+                    message.AppendFormat("Info: {0}\n", infoElement.Value.Trim());
+                    message.AppendLine();
+                }
+            }
+
+            // Print warnings...
+            foreach (var warningElement in testElement.Elements("Warning"))
+            {
+                if (warningElement.Value != null)
+                {
+                    message.AppendFormat("Warning: {0}\n", warningElement.Value.Trim());
+                    message.AppendLine();
+                }
+            }
+
+            // Print failures...
+            foreach (var failureElement in testElement.Elements("Failure"))
+            {
+                if (failureElement.Value != null && failureElement.Value != "")
+                {
+                    message.AppendFormat("Explictly failed with message: {0}\n", failureElement.Value.Trim());
+                    message.AppendLine();
+                }
+                else
+                {
+                    message.AppendLine("Explictly failed.\n");
+                }
+            }
+
+
+            // Print fatal error conditions...
+            foreach (var fatalElement in testElement.Elements("FatalErrorCondition"))
+            {
+                var location = SourceLocation.FromXElement(fatalElement);
+                if (fatalElement.Value != null && fatalElement.Value.Trim() != "")
+                {
+                    message.AppendFormat("Fatal Error at {0} with message:\n\t{1}\n", location, fatalElement.Value.Trim());
+                    message.AppendLine();
+                }
+                else
+                {
+                    message.AppendFormat("Fatal Error at {0}\n", location);
+                    message.AppendLine();
+                }
+            }
+
+            return message.ToString();
         }
 
 

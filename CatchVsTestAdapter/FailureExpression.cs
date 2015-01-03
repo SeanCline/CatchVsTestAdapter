@@ -11,12 +11,7 @@ namespace CatchVsTestAdapter
     {
         public FailureExpression(XElement expressionNode)
         {
-            var fileAttr = expressionNode.Attribute("filename");
-            var lineAttr = expressionNode.Attribute("line");
-            if (fileAttr != null && lineAttr != null)
-            {
-                Location = new SourceLocation(fileAttr.Value, uint.Parse(lineAttr.Value));
-            }
+            Location = SourceLocation.FromXElement(expressionNode);
 
             var exprTypeAttr = expressionNode.Attribute("type");
             if (exprTypeAttr != null)
@@ -100,24 +95,6 @@ namespace CatchVsTestAdapter
             message.Append("\n");
 
             return message.ToString();
-        }
-    }
-
-
-    public class SourceLocation
-    {
-        public SourceLocation(string file, uint line)
-        {
-            File = file;
-            Line = line;
-        }
-
-        public string File { get; private set; }
-        public uint Line { get; private set; }
-
-        public override string ToString()
-        {
-            return System.IO.Path.GetFileName(File) + "(" + Line + ")";
         }
     }
 }
