@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using System.Text;
+using System.Globalization;
 
 namespace CatchVsTestAdapter
 {
@@ -333,7 +334,7 @@ namespace CatchVsTestAdapter
         internal static TimeSpan GetTestDuration(XElement testCaseElement)
         {
             var durationAttr = testCaseElement.Descendants("OverallResult").First().Attribute("durationInSeconds");
-            return TimeSpan.FromSeconds(double.Parse(durationAttr.Value));
+            return TimeSpan.FromSeconds(double.Parse(durationAttr.Value, CultureInfo.InvariantCulture));
         }
 
 
